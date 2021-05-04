@@ -1,25 +1,34 @@
 import io.restassured.RestAssured;
+import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
+import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.*;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringCase;
 
 public class ReqResTests {
 
+    @BeforeEach
+    public void Setup() {
+        RestAssured.baseURI = "https://reqres.in/";
+        RestAssured.basePath = "/api";
+        RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
+    }
+
     @Test
     public void loginTest() {
-
-        String response = RestAssured
-                .given()
-                .log().all() //Para loggear lo que se está enviando
+        String response = given()
                 .contentType(ContentType.JSON)
                 .body("{\n" +
                         "    \"email\": \"eve.holt@reqres.in\",\n" +
                         "    \"password\": \"cityslicka\"\n" +
                         "}")
-                .post("https://reqres.in/api/login")
+                .post("login")
                 .then()
-                .log().all() //Para loggear lo que se recibe
                 .extract()
                 .asString();
 
@@ -28,17 +37,14 @@ public class ReqResTests {
     @Test
     public void loginTestWithAssetion() {
 
-        RestAssured
-                .given()
-                .log().all() //Para loggear lo que se está enviando
+        given()
                 .contentType(ContentType.JSON)
                 .body("{\n" +
                         "    \"email\": \"eve.holt@reqres.in\",\n" +
                         "    \"password\": \"cityslicka\"\n" +
                         "}")
-                .post("https://reqres.in/api/login")
+                .post("login")
                 .then()
-                .log().all() //Para loggear lo que se recibe
                 .statusCode(200)
                 .body("token", equalToIgnoringCase("QpwL5tke4Pnpja7X4"));
 
@@ -47,13 +53,10 @@ public class ReqResTests {
     @Test
     public void getSingleUserTest() {
 
-        RestAssured
-                .given()
-                .log().all() //Para loggear lo que se está enviando
+        given()
                 .contentType(ContentType.JSON)
-                .get("https://reqres.in/api/users/2")
+                .get("users/2")
                 .then()
-                .log().all() //Para loggear lo que se recibe
                 .statusCode(200)
                 .body("data.id", equalTo(2));
 
