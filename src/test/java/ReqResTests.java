@@ -9,7 +9,11 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Map;
+
 import static io.restassured.RestAssured.given;
+import static io.restassured.path.json.JsonPath.from;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
@@ -134,6 +138,29 @@ public class ReqResTests {
         System.out.println(headers.get("Content-Type"));
         System.out.println(headers.get("Transfer-Encoding"));
 
+    }
+
+    @Test
+    public void getAllUsersTest2(){
+        String response = given()
+                .get("users?page=2")
+                .then()
+                .extract()
+                .body().asString();
+
+        int page = from(response).get("page");
+        int total_page = from(response).get("total_pages");
+        int idFirstUser = from(response).get("data[0].id");
+
+        System.out.println("page: " + page);
+        System.out.println("total pages: " + total_page);
+        System.out.println("idFirstUser: " + idFirstUser);
+
+        List<Map> usersWithIdGreaterThan10 = from(response).get("data.findAll {user -> user.id > 10}");
+        usersWithIdGreaterThan10.forEach(System.out::println);
+
+        List<Map> user = from(response).get("data.findAll {user -> user.id > 10 && user.last_name == 'Howell'}");
+        System.out.println(user);
     }
 
 }
