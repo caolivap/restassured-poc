@@ -3,8 +3,9 @@ import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
+import io.restassured.http.Headers;
+import io.restassured.response.Response;
 import org.apache.http.HttpStatus;
-import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -112,6 +113,26 @@ public class ReqResTests {
                 .jsonPath().getString("name");
 
         assertThat(nameUpdated, equalTo("morpheus"));
+
+    }
+
+    @Test
+    public void getAllUsersTest() {
+        Response response = given()
+                .get("users?page=2");
+
+        Headers headers = response.getHeaders();
+        int statusCode = response.getStatusCode();
+        String body = response.getBody().asString();
+        String contentType = response.getContentType();
+
+        assertThat(statusCode, equalTo(HttpStatus.SC_OK));
+        System.out.println("body: " + body);
+        System.out.println("contentType: " + contentType);
+        System.out.println("Headers: " + headers);
+
+        System.out.println(headers.get("Content-Type"));
+        System.out.println(headers.get("Transfer-Encoding"));
 
     }
 
