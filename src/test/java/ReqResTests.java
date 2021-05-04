@@ -1,12 +1,15 @@
 import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
+import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
 
@@ -17,12 +20,15 @@ public class ReqResTests {
         RestAssured.baseURI = "https://reqres.in/";
         RestAssured.basePath = "/api";
         RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
+
+        RestAssured.requestSpecification = new RequestSpecBuilder()
+                .setContentType(ContentType.JSON)
+                .build();
     }
 
     @Test
     public void loginTest() {
         String response = given()
-                .contentType(ContentType.JSON)
                 .body("{\n" +
                         "    \"email\": \"eve.holt@reqres.in\",\n" +
                         "    \"password\": \"cityslicka\"\n" +
@@ -38,7 +44,6 @@ public class ReqResTests {
     public void loginTestWithAssetion() {
 
         given()
-                .contentType(ContentType.JSON)
                 .body("{\n" +
                         "    \"email\": \"eve.holt@reqres.in\",\n" +
                         "    \"password\": \"cityslicka\"\n" +
@@ -54,7 +59,6 @@ public class ReqResTests {
     public void getSingleUserTest() {
 
         given()
-                .contentType(ContentType.JSON)
                 .get("users/2")
                 .then()
                 .statusCode(200)
@@ -62,5 +66,53 @@ public class ReqResTests {
 
     }
 
+    @Test
+    public void deleteUserTest() {
+
+        given()
+                .delete("users/2")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT); //Podíamos haber puesto simplemente 204
+        // pero aprovechamos las constantes proporcionadas por la interfaz HttpStatus
+
+    }
+
+    @Test
+    public void patchUserTest() {
+
+        String jobUpdated = given()
+                .when()
+                .body("{\n" +
+                        "    \"name\": \"morpheus\",\n" +
+                        "    \"job\": \"zion resident\"\n" +
+                        "}")
+                .patch("users/2")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract()
+                .jsonPath().getString("job");
+
+        assertThat(jobUpdated, equalTo("zion resident"));
+
+    }
+
+    @Test
+    public void putUserTest() {
+
+        String nameUpdated = given()
+                .when()
+                .body("{\n" +
+                        "    \"name\": \"morpheus\",\n" +
+                        "    \"job\": \"zion resident\"\n" +
+                        "}")
+                .patch("users/2")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract()
+                .jsonPath().getString("name");
+
+        assertThat(nameUpdated, equalTo("morpheus"));
+
+    }
 
 }
