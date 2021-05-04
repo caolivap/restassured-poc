@@ -142,6 +142,7 @@ public class ReqResTests {
 
     @Test
     public void getAllUsersTest2(){
+        //Below we'll use method from of the class JsonPath
         String response = given()
                 .get("users?page=2")
                 .then()
@@ -161,6 +162,30 @@ public class ReqResTests {
 
         List<Map> user = from(response).get("data.findAll {user -> user.id > 10 && user.last_name == 'Howell'}");
         System.out.println(user);
+    }
+
+    @Test
+    public void createUserTest() {
+
+        //In this test, we need add plugin RoboPOJOGenerator in Intellij Idea
+        //And to add Jackson dependency in our build.gradle
+
+        String response = given()
+                .when()
+                .body("{\n" +
+                        "    \"name\": \"morpheus\",\n" +
+                        "    \"job\": \"leader\"\n" +
+                        "}")
+                .post("users")
+                .then()
+                .extract()
+                .body().asString();
+
+        User user = from(response).getObject("", User.class);
+        System.out.println(user.getName());
+        System.out.println(user.getId());
+        System.out.println(user.getJob());
+        System.out.println(user.getCreatedAt());
     }
 
 }
