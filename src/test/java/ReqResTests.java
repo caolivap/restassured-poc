@@ -1,20 +1,26 @@
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.builder.ResponseSpecBuilder;
+import io.restassured.filter.Filter;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
+import io.restassured.specification.ResponseSpecification;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.responseSpecification;
 import static io.restassured.path.json.JsonPath.from;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -27,13 +33,7 @@ public class ReqResTests {
     @BeforeEach
     public void Setup() {
         logger.info("Iniciando la configuracion");
-        RestAssured.baseURI = "https://reqres.in/";
-        RestAssured.basePath = "/api";
-        RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
-
-        RestAssured.requestSpecification = new RequestSpecBuilder()
-                .setContentType(ContentType.JSON)
-                .build();
+        RestAssured.requestSpecification = defaultRequestSpecification();
         logger.info("Configuracion exitosa");
     }
 
@@ -217,5 +217,49 @@ public class ReqResTests {
         assertThat(userResponse.getToken(), equalTo("QpwL5tke4Pnpja7X4"));
     }
 
+
+    private RequestSpecification defaultRequestSpecification(){
+
+        List<Filter> filters = new ArrayList<>();
+        filters.add(new RequestLoggingFilter());
+        filters.add(new ResponseLoggingFilter());
+
+        return new RequestSpecBuilder()
+                .setBaseUri("https://reqres.in/")
+                .setBasePath("/api")
+                .addFilters(filters)
+                .setContentType(ContentType.JSON)
+                .build();
+    }
+
+    private ResponseSpecification defaultResponseSpecification(){
+        return new ResponseSpecBuilder()
+                .expectStatusCode(HttpStatus.SC_OK)
+                .expectContentType(ContentType.JSON)
+                .build();
+    }
+
+    @Test
+    public void registerUserTestUsingResponseSpecification() {
+
+        CreateUserRequest user = new CreateUserRequest();
+        user.setEmail("eve.holt@reqres.in");
+        user.setPassword("pistol");
+
+        CreateUserResponse userResponse =
+                given()
+                        .when()
+                        .body(user)
+                        .post("register")
+                        .then()
+                        .spec(defaultResponseSpecification())
+                        .contentType("application/json; charset=utf-8")
+                        .extract()
+                        .body()
+                        .as(CreateUserResponse.class);
+
+        assertThat(userResponse.getId(), equalTo(4));
+        assertThat(userResponse.getToken(), equalTo("QpwL5tke4Pnpja7X4"));
+    }
 
 }
