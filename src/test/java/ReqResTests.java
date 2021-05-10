@@ -141,7 +141,7 @@ public class ReqResTests {
     }
 
     @Test
-    public void getAllUsersTest2(){
+    public void getAllUsersTest2() {
         //Below we'll use method from of the class JsonPath
         String response = given()
                 .get("users?page=2")
@@ -187,5 +187,29 @@ public class ReqResTests {
         System.out.println(user.getJob());
         System.out.println(user.getCreatedAt());
     }
+
+    @Test
+    public void registerUserTest() {
+
+        CreateUserRequest user = new CreateUserRequest();
+        user.setEmail("eve.holt@reqres.in");
+        user.setPassword("pistol");
+
+        CreateUserResponse userResponse =
+                given()
+                        .when()
+                        .body(user)
+                        .post("register")
+                        .then()
+                        .statusCode(200) // Antes de mapear la respuesta a nuestro objeto, primero validamos que
+                        .contentType("application/json; charset=utf-8") // nuestra petición fue respondida correctamente y que el response trae información
+                        .extract()
+                        .body()
+                        .as(CreateUserResponse.class);
+
+        assertThat(userResponse.getId(), equalTo(4));
+        assertThat(userResponse.getToken(), equalTo("QpwL5tke4Pnpja7X4"));
+    }
+
 
 }
