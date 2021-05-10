@@ -6,6 +6,8 @@ import io.restassured.http.ContentType;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.apache.http.HttpStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,8 +22,11 @@ import static org.hamcrest.Matchers.equalToIgnoringCase;
 
 public class ReqResTests {
 
+    private static final Logger logger = LogManager.getLogger(ReqResTests.class);
+
     @BeforeEach
     public void Setup() {
+        logger.info("Iniciando la configuracion");
         RestAssured.baseURI = "https://reqres.in/";
         RestAssured.basePath = "/api";
         RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
@@ -29,6 +34,7 @@ public class ReqResTests {
         RestAssured.requestSpecification = new RequestSpecBuilder()
                 .setContentType(ContentType.JSON)
                 .build();
+        logger.info("Configuracion exitosa");
     }
 
     @Test
